@@ -24,7 +24,6 @@ export default function SmartHCMDashboard() {
   const [health, setHealth] = useState<ApiHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<string>("ALL");
-  const [apiUrl, setApiUrl] = useState<string>("");
 
   // Modals state
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -79,7 +78,6 @@ export default function SmartHCMDashboard() {
   }, []);
 
   useEffect(() => {
-    setApiUrl(api.getBaseUrl());
     loadData();
 
     // Check health periodically
@@ -89,13 +87,6 @@ export default function SmartHCMDashboard() {
 
     return () => clearInterval(interval);
   }, [loadData]);
-
-  const handleUpdateApiUrl = (newUrl: string) => {
-    api.setBaseUrl(newUrl);
-    setApiUrl(newUrl);
-    addToast(`API endpoint updated to ${newUrl}`, "info");
-    loadData();
-  };
 
   // Create / Update Employee
   const handleSaveEmployee = async (
@@ -181,8 +172,6 @@ export default function SmartHCMDashboard() {
       {/* Top Sticky Header */}
       <Navbar
         health={health}
-        apiUrl={apiUrl}
-        onUpdateApiUrl={handleUpdateApiUrl}
         onOpenAddModal={() => {
           setEditEmployee(null);
           setIsAddEditOpen(true);

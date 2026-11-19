@@ -1,32 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import { Users, Server, CheckCircle2, AlertCircle, Plus, Settings } from "lucide-react";
+import React from "react";
+import { Users, Plus } from "lucide-react";
 import { ApiHealth } from "@/types";
 
 interface NavbarProps {
   health: ApiHealth | null;
-  apiUrl: string;
-  onUpdateApiUrl: (url: string) => void;
   onOpenAddModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   health,
-  apiUrl,
-  onUpdateApiUrl,
   onOpenAddModal,
 }) => {
-  const [showConfig, setShowConfig] = useState(false);
-  const [tempUrl, setTempUrl] = useState(apiUrl);
-
   const isHealthy = health?.status === "healthy";
-
-  const handleSaveUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdateApiUrl(tempUrl.trim());
-    setShowConfig(false);
-  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
@@ -56,13 +43,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center space-x-3">
             {/* Backend Health Badge */}
             <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                 isHealthy
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-amber-50 text-amber-700 border-amber-200"
               }`}
-              onClick={() => setShowConfig(!showConfig)}
-              title="Click to configure backend API URL"
+              title={
+                isHealthy
+                  ? `Backend connected (DB: ${health?.database || "active"})`
+                  : "Connecting to backend service..."
+              }
             >
               <div className="relative flex h-2 w-2">
                 {isHealthy && (
@@ -74,10 +64,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 ></span>
               </div>
-              <span className="hidden md:inline">
+              <span>
                 {isHealthy ? "Backend Connected" : "Connecting..."}
               </span>
-              <Settings className="w-3.5 h-3.5 opacity-60 ml-0.5" />
             </div>
 
             {/* Quick Add Employee CTA */}
@@ -91,48 +80,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Backend API Configuration Dropdown / Modal */}
-      {showConfig && (
-        <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div className="flex items-center space-x-2 text-slate-700">
-              <Server className="w-4 h-4 text-indigo-500" />
-              <span>Backend Endpoint:</span>
-              <code className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-indigo-600">
-                {apiUrl}
-              </code>
-              {health && (
-                <span className="text-slate-500">
-                  (DB: <strong className="text-emerald-600">{health.database}</strong>)
-                </span>
-              )}
-            </div>
-            <form onSubmit={handleSaveUrl} className="flex items-center space-x-2 w-full sm:w-auto">
-              <input
-                type="text"
-                value={tempUrl}
-                onChange={(e) => setTempUrl(e.target.value)}
-                placeholder="e.g. https://your-backend.railway.app"
-                className="px-2.5 py-1 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-64"
-              />
-              <button
-                type="submit"
-                className="px-3 py-1 bg-indigo-600 text-white rounded font-medium hover:bg-indigo-700 transition"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowConfig(false)}
-                className="px-2 py-1 text-slate-600 hover:text-slate-900"
-              >
-                Close
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
