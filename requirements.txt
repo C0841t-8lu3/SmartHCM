@@ -1,6 +1,0 @@
-django==5.2.5
-django-bootstrap5
-gunicorn
-whitenoise
-python-decouple
-psycopg2-binary
