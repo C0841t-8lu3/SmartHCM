@@ -6,11 +6,19 @@ on:
   pull_request:
     branches: [ main ]
 
+# Minimal default permissions for public repository security
+permissions:
+  contents: read
+
 jobs:
   # ---------- Job 1: Django Backend Verification & Tests ----------
   backend-ci:
     name: Backend Linting, Check & Tests
     runs-on: ubuntu-latest
+    env:
+      DEBUG: '0'
+      SECRET_KEY: 'ci-temporary-cryptographic-test-key-32charsmin'
+      ALLOWED_HOSTS: 'localhost,127.0.0.1'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

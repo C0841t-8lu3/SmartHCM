@@ -6,17 +6,26 @@ Production-ready and secured for Railway deployment.
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings from Environment
-SECRET_KEY = config(
-    'SECRET_KEY',
-    default='django-insecure-smart-hcm-secure-default-change-in-production-!@#$'
-)
-
 DEBUG = config('DEBUG', default=False, cast=bool)
+
+# In production (DEBUG=False), SECRET_KEY must be supplied via environment variable.
+SECRET_KEY = config('SECRET_KEY', default=None)
+if not SECRET_KEY:
+    if DEBUG or 'test' in sys.argv or 'check' in sys.argv:
+        SECRET_KEY = 'django-insecure-dev-only-local-secret-key-change-in-production'
+    else:
+        raise ValueError(
+            "CRITICAL SECURITY CONFIGURATION ERROR:\n"
+            "The SECRET_KEY environment variable is missing!\n"
+            "When running in production (DEBUG=False), you MUST supply a unique, "
+            "cryptographically strong SECRET_KEY via environment variables."
+        )
 
 # Host Configuration
 default_hosts = 'localhost,127.0.0.1,[::1],.railway.app'
@@ -162,14 +171,20 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# Production Security Enhancements
+# Security Headers & Cookie Flags (Active in all environments)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+
+# Production-Only HTTPS and Cookie Hardening
 if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
